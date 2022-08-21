@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3098225540960288275}
   - component: {fileID: 3098225540960288277}
   - component: {fileID: -4963726657798244282}
+  - component: {fileID: 5788163635137825380}
   m_Layer: 0
   m_Name: Bubble
   m_TagString: Untagged
@@ -76,7 +77,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: a3382a33cfb5d0642aad04116b1b30a4, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -102,7 +103,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 7eece1324af688941af4f6b8952e90c3, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
@@ -119,3 +120,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35bfc22eea09b47469448ab3daccc7b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  initialForce: {x: 1, y: 1}
+  forceFactor: 4
+--- !u!58 &5788163635137825380
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3098225540960288274}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.25
