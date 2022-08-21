@@ -18,13 +18,16 @@ public class BounceBubble : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        var normalVector = initialForce.normalized;
-        _bubbleBody.velocity = initialForce.normalized * forceFactor;
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    public void Launch(Vector2 launchVector)
+    {
+        _bubbleBody.velocity = launchVector.normalized * forceFactor;
     }
 }

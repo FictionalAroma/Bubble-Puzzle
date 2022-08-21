@@ -5,8 +5,9 @@ using UnityEngine.InputSystem;
 public class LauncherControl : MonoBehaviour
 {
     private PlayerInputControls _controls;
-    [SerializeField]
-    private Camera _camera;
+    [SerializeField] private Camera cameraToPointOn;
+
+    [SerializeField] private BounceBubble objectToShoot;
 
     private InputAction _look;
     private InputAction _fire;
@@ -45,21 +46,23 @@ public class LauncherControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var lookDir = _camera.ScreenToWorldPoint(Mouse.current.position.ReadValue()) - transform.position;
-        //Debug.Log(lookDir);
-        float lookAngle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;
+        var lookAngle = GetAngleFromLaunchToMouse();
         //Debug.Log(lookAngle);
         transform.rotation = Quaternion.AngleAxis(lookAngle, Vector3.forward);
-
     }
 
-    private void FixedUpdate()
+    private float GetAngleFromLaunchToMouse()
     {
+        var lookDir = cameraToPointOn.ScreenToWorldPoint(Mouse.current.position.ReadValue()) - transform.position;
+        //Debug.Log(lookDir);
+        float lookAngle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg - 90f;
+        return lookAngle;
     }
 
 
     public void OnFire(InputAction.CallbackContext context)
     {
-        Debug.Log("Fire Pressed");
+        var newBubble = Instantiate(objectToShoot, transform.position, Quaternion.identity);
+        newBubble.Launch(cameraToPointOn.ScreenToWorldPoint(Mouse.current.position.ReadValue()) - transform.position);
     }
 }
