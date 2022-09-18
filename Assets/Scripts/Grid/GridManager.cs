@@ -1,114 +1,119 @@
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts;
 using UnityEngine;
 
-
-public class GridManager : MonoBehaviour
+namespace Grid
 {
-    public static GridManager Instance { get; private set; }
-
-    [SerializeField]
-    public Vector2Int gridSize;
-    private Dictionary<Vector2Int, HexCell> GridSet;
-
-    private Grid _gridHelper;
-
-
-    public Vector2Int testSpawnerCoords;
-    public Vector2Int testBrainCoords;
-
-    
-    void Awake()
+    public class GridManager : MonoBehaviour
     {
-        Instance = this;
-        GridSet = new Dictionary<Vector2Int, HexCell>();
-        GenerateGrid(gridSize.x, gridSize.y);
-    }
+        private static GridManager _instance;
+
+        public static GridManager Instance { get => _instance; private set => _instance = value; }
+
+        [SerializeField]private Vector2Int gridSize;
+        [SerializeField] private float cellSize = 0.5f;
+        private Dictionary<Vector2Int, HexCell> _gridSet;
 
 
-    private void GenerateGrid(int gridWidth, int gridNumRows, bool fromCenter = false)
-    {
-        for (int yIndex = 0; yIndex < gridNumRows; yIndex++)
+        void Awake()
         {
-            var rowOffset = yIndex >>1;
-            for (int xIndex = -rowOffset; xIndex < gridWidth - rowOffset; xIndex++)
-            {
-                var newCell = new HexCell();
-                GridSet.Add(new Vector2Int(xIndex, yIndex), newCell);
-
-            }
+            _instance = this;
+            _gridSet = new Dictionary<Vector2Int, HexCell>();
+        
+            GenerateGrid(gridSize.x, gridSize.y);
         }
 
-        var hexList = GridSet.Values.ToList();
-        foreach (var hexCell in hexList)
+
+        private void GenerateGrid(int gridWidth, int gridNumRows, bool fromCenter = false)
         {
-            hexCell.CacheNeighbors(hexList);
-        }
-    }
-
-
-
-    public bool CalculatePath(HexCell startCell)
-    {
-        var target = testBrainCoords;
-
-        var cellPathsToTest = new List<HexCell> { startCell };
-        var processed = new List<HexCell>();
-
-        while (cellPathsToTest.Any())
-        {
-            // just get the 
-            HexCell currentCell = cellPathsToTest.First();
-            if(cellPathsToTest.Count > 1)
+            for (int yIndex = 0; yIndex < gridNumRows; yIndex++)
             {
-                foreach (var t in cellPathsToTest)
+                var rowOffset = yIndex >>1;
+                for (int xIndex = -rowOffset; xIndex < gridWidth - rowOffset; xIndex++)
                 {
-                    if (t.Pathfinding.F < currentCell.Pathfinding.F ||
-                        // ReSharper disable once CompareOfFloatsByEqualityOperator
-                        (t.Pathfinding.F == currentCell.Pathfinding.F && t.Pathfinding.H < currentCell.Pathfinding.H))
-                    {
-                        currentCell = t;
-                    }
+                    var newCell = new HexCell();
+                    newCell.Init(xIndex, yIndex, cellSize, this.transform.position);
+                    _gridSet.Add(new Vector2Int(xIndex, yIndex), newCell);
                 }
             }
 
-            processed.Add(currentCell);
-            cellPathsToTest.Remove(currentCell);
-
-            if (currentCell.Coords.X == testBrainCoords.x && currentCell.Coords.Z == testBrainCoords.y)
+            var hexList = _gridSet.Values.ToList();
+            foreach (var hexCell in hexList)
             {
-                return true;
+                hexCell.CacheNeighbors(hexList);
             }
+        }
 
-            foreach (var nextCellTest in currentCell.NeighborCellCache.Where(cell => cell.Walkable && 
-                                                                                    !processed.Contains(cell)))
+        private void Update()
+        {
+            foreach (var hexCell in _gridSet)
             {
-                var costForMove = currentCell.Pathfinding.G + currentCell.GetDistance(nextCellTest.Coords);
+                // Debug.DrawLine();
+                hexCell.Value.DebugDraw();
+            }
+        }
 
 
-                var inSearch = cellPathsToTest.Contains(nextCellTest);
+        public bool CalculatePath(HexCell startCell)
+        {
 
-                if (!inSearch || costForMove < nextCellTest.Pathfinding.G)
+            var cellPathsToTest = new List<HexCell> { startCell };
+            var processed = new List<HexCell>();
+
+            while (cellPathsToTest.Any())
+            {
+                // just get the 
+                HexCell currentCell = cellPathsToTest.First();
+                if(cellPathsToTest.Count > 1)
                 {
-                    nextCellTest.Pathfinding.G = costForMove;
-
-                    if (!inSearch)
+                    foreach (var t in cellPathsToTest)
                     {
-                        // set the total distance to the goal
-                        nextCellTest.Pathfinding.H = nextCellTest.GetDistance(testBrainCoords);
-                        cellPathsToTest.Add(nextCellTest);
-
+                        if (t.Pathfinding.F < currentCell.Pathfinding.F ||
+                            // ReSharper disable once CompareOfFloatsByEqualityOperator
+                            (t.Pathfinding.F == currentCell.Pathfinding.F && t.Pathfinding.H < currentCell.Pathfinding.H))
+                        {
+                            currentCell = t;
+                        }
                     }
+                }
+
+                processed.Add(currentCell);
+                cellPathsToTest.Remove(currentCell);
+
+                //if (currentCell.Coords.X == testBrainCoords.x && currentCell.Coords.Y == testBrainCoords.y)
+                //{
+                //    return true;
+                //}
+
+                foreach (var nextCellTest in currentCell.NeighborCellCache.Where(cell => cell.Walkable && 
+                             !processed.Contains(cell)))
+                {
+                    var costForMove = currentCell.Pathfinding.G + currentCell.GetDistance(nextCellTest.Coords);
+
+
+                    var inSearch = cellPathsToTest.Contains(nextCellTest);
+
+                    if (!inSearch || costForMove < nextCellTest.Pathfinding.G)
+                    {
+                        nextCellTest.Pathfinding.G = costForMove;
+
+                        if (!inSearch)
+                        {
+                            // set the total distance to the goal
+                            //nextCellTest.Pathfinding.H = nextCellTest.GetDistance(testBrainCoords);
+                            cellPathsToTest.Add(nextCellTest);
+
+                        }
+                    }
+
                 }
 
             }
 
+            // something has gone really wrong
+            Debug.LogError("Pathfinding couldnt get to destination!!");
+
+            return false;
         }
-
-        // something has gone really wrong
-        Debug.LogError("Pathfinding couldnt get to destination!!");
-
-        return false;
     }
 }
